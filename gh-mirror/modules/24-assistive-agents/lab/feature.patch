@@ -1,0 +1,39 @@
+diff --git a/cli.py b/cli.py
+index 91e9276..b2c4f1a 100644
+--- a/cli.py
++++ b/cli.py
+@@ -31,7 +31,7 @@ def save(tlist: TaskList) -> None:
+ def main(argv: list[str]) -> int:
+     tlist = load()
+     if not argv:
+-        print("usage: python3 cli.py [add <title> | list | done <index>]")
++        print("usage: python3 cli.py [add <title> | list | done <index> | clear]")
+         return 1
+
+     command = argv[0]
+@@ -45,6 +45,9 @@ def main(argv: list[str]) -> int:
+     elif command == "done":
+         tlist.complete(int(argv[1]))
+         save(tlist)
+         print("updated")
++    elif command == "clear":
++        tlist.clear()
++        print("cleared all tasks")
+     else:
+         print(f"unknown command: {command}")
+         return 1
+diff --git a/tasks.py b/tasks.py
+index 5d7d637..a1b2c3d 100644
+--- a/tasks.py
++++ b/tasks.py
+@@ -25,6 +25,9 @@ class TaskList:
+         return task
+
+     def complete(self, index: int) -> None:
+         self.tasks[index].done = True
+
++    def clear(self) -> None:
++        self.tasks = []
++
+     def pending(self) -> list[Task]:
+         return [t for t in self.tasks if not t.done]

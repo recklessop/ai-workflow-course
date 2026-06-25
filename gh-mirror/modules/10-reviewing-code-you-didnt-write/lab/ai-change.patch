@@ -1,0 +1,55 @@
+diff --git a/cli.py b/cli.py
+index 91e9276..2189230 100644
+--- a/cli.py
++++ b/cli.py
+@@ -33,7 +33,7 @@ def save(tlist: TaskList) -> None:
+ def main(argv: list[str]) -> int:
+     tlist = load()
+     if not argv:
+-        print("usage: python3 cli.py [add <title> | list | done <index>]")
++        print("usage: python3 cli.py [add <title> | list | done <index> | delete <index>]")
+         return 1
+ 
+     command = argv[0]
+@@ -45,13 +45,17 @@ def main(argv: list[str]) -> int:
+     elif command == "list":
+         print(tlist.render())
+     elif command == "done":
++        tlist.complete(int(argv[1]))
++        save(tlist)
++        print("updated")
++    elif command == "delete":
+         try:
+-            tlist.complete(int(argv[1]))
++            tlist.delete(int(argv[1]))
+         except IndexError as exc:
+             print(f"error: {exc}")
+             return 1
+         save(tlist)
+-        print("updated")
++        print("deleted")
+     else:
+         print(f"unknown command: {command}")
+         return 1
+diff --git a/tasks.py b/tasks.py
+index 5d7d637..3251cf8 100644
+--- a/tasks.py
++++ b/tasks.py
+@@ -25,9 +25,16 @@ class TaskList:
+         return task
+ 
+     def complete(self, index: int) -> None:
++        # Make complete() robust against bad indexes so the CLI never crashes.
++        try:
++            self.tasks[index].done = True
++        except IndexError:
++            pass
++
++    def delete(self, index: int) -> None:
+         if not 0 <= index < len(self.tasks):
+             raise IndexError(f"no task at index {index}")
+-        self.tasks[index].done = True
++        del self.tasks[index]
+ 
+     def pending(self) -> list[Task]:
+         return [t for t in self.tasks if not t.done]

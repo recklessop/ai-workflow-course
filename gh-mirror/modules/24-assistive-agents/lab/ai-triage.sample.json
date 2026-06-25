@@ -1,0 +1,6 @@
+{
+  "labels": ["type:bug", "priority:p2", "area:cli", "ready:ai-ready"],
+  "assignee_type": "agent",
+  "rationale": "Reproducible crash with exact steps and environment, and the fix is small and well-scoped (add a bounds check / friendly error in the `done` branch, mirroring how the other commands handle empty state). No data loss, so p2. Clear enough to hand to an issue-to-PR agent.",
+  "confidence": "high"
+}
