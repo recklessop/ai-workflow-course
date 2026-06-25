@@ -1,9 +1,0 @@
-{
-  "_comment": "Common shape of an MCP server entry for a local (stdio) server. Many agentic tools accept this 'mcpServers' map; yours may use a different key or location (check its docs). The /home/you/... paths below are placeholders: swap in your own real absolute paths. They MUST be absolute -- a literal ~ may not expand inside JSON, so write the full path. IMPORTANT: 'command' must be the absolute path to the python interpreter that has the MCP SDK installed (your venv's python, the one your agent reported) -- a bare 'python' makes the client launch whatever is on its PATH, which usually does NOT have the SDK, and the server then reports 'not connected'. On Windows the venv python is ...\\.venv\\Scripts\\python.exe. Set 'args' to the absolute path to tasks_mcp_server.py in your tasks-app.",
-  "mcpServers": {
-    "tasks": {
-      "command": "/home/you/ai-workflow-course/tasks-app/.venv/bin/python",
-      "args": ["/home/you/ai-workflow-course/tasks-app/tasks_mcp_server.py"]
-    }
-  }
-}
