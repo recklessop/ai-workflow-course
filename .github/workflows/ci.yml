@@ -1,0 +1,25 @@
+# PR + push CI for the GitHub mirror. Mirrors .gitea/workflows/ci.yml:
+#   build = render the wiki from this tree; test = tools/check.sh.
+name: CI
+on:
+  pull_request: {}
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: build (render wiki) + test (check.sh)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pyyaml || true
+          python3 tools/build_wiki.py --repo-root . --out /tmp/awc-wiki-build \
+            --web-base https://github.com/recklessop/ai-workflow-course --branch main --host github
+          bash tools/check.sh

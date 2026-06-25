@@ -1,0 +1,24 @@
+# Dependencies an AI "suggested" for the tasks-app cloud-sync feature.
+#
+# This file is deliberately booby-trapped with the three things AI gets wrong about dependencies.
+# Read it before you run anything; every line looks plausible, which is the whole problem.
+#
+# Work through it in Part B of the lab:
+#   1) `pip-audit -r requirements.txt` will FAIL TO RESOLVE because of the bad names below.
+#   2) Comment out the unresolvable lines (do NOT "autocorrect" them to the nearest real name).
+#   3) Re-run; the real-but-old package will report an advisory. Bump it until the scan is clean.
+
+# (1) REAL package, pinned to a KNOWN-VULNERABLE old version.
+#     SCA should flag an advisory here and tell you the fixed version. (Verify-before-publish:
+#     confirm this version still trips your scanner; re-pin if the advisory DB has moved.)
+requests==2.19.1
+
+# (2) TYPOSQUAT of a real package ("requests"). One transposed letter. Does not exist on the
+#     public index today; the resolver will reject it. The danger isn't the 404; it's "fixing"
+#     it by guessing instead of verifying what was actually meant.
+reqeusts==2.31.0
+
+# (3) HALLUCINATION: a plausible-but-invented name the model produced from thin air. This is the
+#     slopsquatting target: register this name with malware and the next person to `pip install`
+#     gets owned. Confirm it does not resolve; never add it without verifying the real project.
+task-cloud-sync-client==1.4.2

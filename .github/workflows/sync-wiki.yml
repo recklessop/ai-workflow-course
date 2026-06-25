@@ -1,0 +1,52 @@
+# Render the course (single source of truth = modules/) into the GitHub wiki on
+# every push to main. The wiki is generated BUILD OUTPUT; never hand-edit it.
+# This activates on the GitHub mirror; the Gitea copy uses .gitea/workflows/.
+#
+# Prerequisites (one-time on the mirror):
+#   1. The wiki must be INITIALIZED first; create any page once in the GitHub UI,
+#      otherwise the <repo>.wiki.git remote does not exist and the clone fails.
+#   2. A repo secret WIKI_TOKEN holds a PAT with wiki/repo write. The default
+#      GITHUB_TOKEN CANNOT push to the wiki repo, so a PAT is required.
+name: Sync course wiki
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'modules/**'
+      - 'capstone/**'
+      - 'README.md'
+      - 'tools/build_wiki.py'
+      - '.github/workflows/sync-wiki.yml'
+  workflow_dispatch: {}
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Render and push the wiki
+        shell: bash
+        env:
+          WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${WIKI_TOKEN:-}" ]; then
+            echo "::error::WIKI_TOKEN secret is not set; see this workflow's header."
+            exit 1
+          fi
+          repo="${GITHUB_REPOSITORY}"   # owner/repo
+          git clone "https://x-access-token:${WIKI_TOKEN}@github.com/${repo}.wiki.git" wiki
+          python3 tools/build_wiki.py --repo-root . --out wiki \
+            --web-base "https://github.com/${repo}" --branch main --host github
+          cd wiki
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "wiki already up to date"; exit 0
+          fi
+          git commit -m "docs(wiki): sync from modules/ @ $(echo "$GITHUB_SHA" | cut -c1-8)"
+          git push origin HEAD

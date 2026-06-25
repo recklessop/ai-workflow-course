@@ -1,0 +1,77 @@
+# Module 19 lab: "Where did this actually run?"
+#
+# This is the Module 14 CI pipeline (lint + test the tasks-app) with one extra step bolted on the
+# end: it makes the runner tell you who and where it is. Run it once on a hosted runner, then again
+# after you've pointed it at your own self-hosted runner in Track B, and compare the two receipts.
+#
+# Where this file goes: the same workflow directory as your Module 14 ci.yml. On Actions-style forges
+# (GitHub, and Forgejo/Gitea with Actions-compatible YAML) that's <forge-dir>/workflows/ at the repo
+# root, e.g. .github/workflows/whoami-runner.yml. The filename is yours; the directory is not.
+#
+# For GitLab CI, the same idea is a one-job .gitlab-ci.yml: run the same script lines under `script:`
+# with `tags:` selecting your runner. The shape rhymes; only the YAML dialect changes.
+
+name: whoami-runner
+
+on:
+  push:
+  workflow_dispatch:   # lets you trigger it by hand from the forge UI
+
+jobs:
+  whoami:
+    # Track A: leave this as the hosted image and read the receipt.
+    # Track B: change this to select your own runner by label, e.g.
+    #   runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install tools
+        run: pip install pytest ruff
+
+      # The real Module 14 checks still run; a self-hosted runner has to actually do the work.
+      - name: Lint
+        run: ruff check .
+
+      - name: Test
+        run: pytest -q
+
+      # The point of THIS workflow: make the runner identify itself.
+      # if: always() so the receipt prints even when Lint/Test fail above; a diagnostic step
+      # shouldn't vanish on a red build. The job still reports red; only this step is unconditional.
+      # (On GitLab CI the same idea is `when: always` on the job/step.)
+      - name: Where did this run?
+        if: always()
+        shell: bash
+        run: |
+          echo "=== runner identity ==="
+          echo "hostname : $(hostname)"
+          echo "os       : $(uname -a)"
+          echo "user     : $(whoami)"
+          echo "workdir  : $(pwd)"
+          echo
+          echo "=== ephemeral? (does junk from a previous run survive?) ==="
+          MARK="$HOME/.module19_ran_before"
+          if [ -f "$MARK" ]; then
+            echo "FOUND a marker from a PREVIOUS run at $MARK"
+            echo "  -> this machine is PERSISTENT (not a fresh throwaway). Expect a self-hosted runner."
+          else
+            echo "No marker found. Either this is a fresh machine (hosted) or the first run here."
+          fi
+          date > "$MARK" 2>/dev/null && echo "(left a marker for next time)" || echo "(could not write a marker)"
+          echo
+          echo "=== can this runner reach the public internet? ==="
+          if curl -fsS -m 5 https://example.com >/dev/null 2>&1; then
+            echo "YES: outbound internet works from here."
+          else
+            echo "NO: no outbound internet (could be an air-gapped / isolated runner)."
+          fi
+          echo
+          echo "Now ask: is this machine MINE, and what else can it reach? (see inspect-runner.sh)"
