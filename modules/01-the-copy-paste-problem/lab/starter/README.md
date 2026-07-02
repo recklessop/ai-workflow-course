@@ -4,8 +4,7 @@ A deliberately tiny command-line task tracker. It exists to be *changed by an AI
 enough to read in a minute but real enough to have more than one file, which is exactly where the
 copy-paste workflow starts to hurt.
 
-This is the running example for **Module 1** (where you feel the copy-paste problem) and **Module 2**
-(where you put it under version control).
+This is the running example throughout the course: pain in Module 1, safety net in Module 2, docs in Module 3, agent-driven edits in Module 4, and it keeps showing up all the way to the capstone.
 
 ## Files
 
